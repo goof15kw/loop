@@ -17,10 +17,13 @@ Note en attendant d'avoir des sources.
 
 
 Table des points 
-Ext    Eau.   Delta.   
+Ext    Eau.   Delta
 5.      25.    25
 0.      30.    30
 -5.     35.    40
 
 -25.    70+.    95+
 
+Trouver 2 opto pour isoler le 24VAC :
+
+PC824 LTV824 easy enought. 
