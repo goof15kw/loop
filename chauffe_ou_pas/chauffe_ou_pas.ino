@@ -1,6 +1,22 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+// Voir pente.gnumeric
+//Text	Teau					Text	Teau			
+//-20	65				p1	-20	65			
+//-18	62,75				p2	20	20			m=(x2-x1)/(y2-y1)
+//-16	60,5									*-1,125*
+//-10	53,75									
+//-5	48,125									y=mx+b
+//0	42,5									b=y-mx
+//5	36,875									*42,5*
+//10	31,25									
+//15	25,625									
+//20	20									
+
+float m=-1.125;
+float b=42.5;
+
 // Data wire is plugged into pin 3 on the Arduino
 #define ONE_WIRE_BUS 3
 #define BROCHE_RELAI 4
@@ -74,13 +90,9 @@ void verifieTempEau()
   {
     if (delta < 0.0 ) { 
 	Serial.print("Chauffe (delta[");
-        Serial.print(delta);
-        Serial.print("])");	
 	digitalWrite(BROCHE_RELAI,CHAUFFE);
     } else { 
 	Serial.print("Chauffe pas(delta[");
-        Serial.print(delta);
-        Serial.print("])");
  	digitalWrite(BROCHE_RELAI,CHAUFFE_PAS);
     }
   } else { 
@@ -88,6 +100,21 @@ void verifieTempEau()
      Serial.print(delta);
      Serial.print("])");
   }
+  Serial.print(delta);
+  Serial.print("] Cible [");
+  Serial.print(tempCible);
+  Serial.print("C])");
+}
+
+int lectureRateEau=0;
+int lectureRateExt=0;
+
+void calculeCible()
+{
+    tempCible=m*tempExt+b; 
+//  Serial.print("Cible: ");
+//	Serial.print(cible);
+//	Serial.print("C\n\r");
 }
 
 void loop(void)
@@ -100,12 +127,12 @@ void loop(void)
   temp=sensors.getTempC(thermometreEau);
   if ( temperatureValide(temp) ) {
 	tempEau=temp;
-  }
+  } else { lectureRateEau++; }
 
   temp=sensors.getTempC(thermometreExterieur);
   if ( temperatureValide(temp) ) {
 	tempExt=temp;
-  }
+  }else { lectureRateExt++; }
   
   Serial.print("Temperature eau: ");
   printTemperature(tempEau);
@@ -113,11 +140,9 @@ void loop(void)
   Serial.print("Temprature extrieure: ");
   printTemperature(tempExt);
   Serial.print("\n\r");
-  
-  verifieTempEau();
-}
-// digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-//  delay(1000);               // wait for a second
-//  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-//  delay(1000);               // wait for a second
 
+  calculeCible();  
+  verifieTempEau();
+
+  
+}
