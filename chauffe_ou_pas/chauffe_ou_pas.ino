@@ -20,6 +20,7 @@ float b=42.5;
 // Data wire is plugged into pin 3 on the Arduino
 #define ONE_WIRE_BUS 3
 #define BROCHE_RELAI 4
+#define LED 13
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(ONE_WIRE_BUS);
 
@@ -54,6 +55,8 @@ void setup(void)
 
   pinMode(BROCHE_RELAI, OUTPUT);
   digitalWrite(BROCHE_RELAI,CHAUFFE_PAS);  
+  pinMode(LED,OUTPUT);
+  digitalWrite(LED,HIGH);
 }
 
 void printTemperature(float tempC)
@@ -91,14 +94,17 @@ void verifieTempEau()
     if (delta < 0.0 ) { 
 	Serial.print("Chauffe (delta[");
 	digitalWrite(BROCHE_RELAI,CHAUFFE);
-    } else { 
+	flashLaLumiere(3); 
+   } else { 
 	Serial.print("Chauffe pas(delta[");
  	digitalWrite(BROCHE_RELAI,CHAUFFE_PAS);
+	flashLaLumiere(2);
     }
   } else { 
      Serial.print("Touche pas (delta[");
      Serial.print(delta);
      Serial.print("])");
+     flashLaLumiere(1);
   }
   Serial.print(delta);
   Serial.print("] Cible [");
@@ -145,4 +151,15 @@ void loop(void)
   verifieTempEau();
 
   
+}
+
+void flashLaLumiere(int nb)
+{
+  for (int i=0;i<nb;i++)
+  {
+    digitalWrite(LED,LOW);
+    delay(150);
+    digitalWrite(LED,HIGH);
+    delay(150);
+  }
 }
