@@ -14,8 +14,8 @@
 //15	25,625									
 //20	20									
 
-float m=-1.125;
-float b=42.5;
+float m=-1.5;
+float b=50.0;
 
 // Data wire is plugged into pin 3 on the Arduino
 #define ONE_WIRE_BUS 3
