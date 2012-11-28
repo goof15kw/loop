@@ -14,8 +14,8 @@
 //15	25,625									
 //20	20									
 
-float m=-1.5;
-float b=50.0;
+float m=-0.5;
+float b=55.0;
 
 // Data wire is plugged into pin 3 on the Arduino
 #define ONE_WIRE_BUS 3
@@ -37,11 +37,18 @@ DeviceAddress thermometreEau = { 0x28, 0x8C, 0xDF, 0x07, 0x04, 0x00, 0x00, 0xA0 
 #define CHAUFFE LOW
 #define CHAUFFE_PAS HIGH
 
+// valeur lue des senseurs
 float tempEau=45;
 float tempExt=21;
 
-float tempCible=45;
-float tolerance=1; // hysteresis, combien on tolere autour de la cible
+// hysteresis, +- combien on tolere autour de la cible
+float tolerance=1; 
+//pour que la premiere loop laisse le circuit ferme (chauffe).
+float tempCible=tempEau-(2 * tolerance) ; 
+
+// compteur d'erreurs
+int lectureRateEau=0;
+int lectureRateExt=0;
 
 void setup(void)
 {
@@ -54,32 +61,27 @@ void setup(void)
   sensors.setResolution(thermometreEau, 12);
 
   pinMode(BROCHE_RELAI, OUTPUT);
-  digitalWrite(BROCHE_RELAI,CHAUFFE_PAS);  
+  digitalWrite(BROCHE_RELAI,CHAUFFE);  
   pinMode(LED,OUTPUT);
   digitalWrite(LED,HIGH);
 }
 
 void printTemperature(float tempC)
 {
-//  float tempC = sensors.getTempC(deviceAddress);
-  if (tempC == -127.00 || tempC == 0.00 || tempC == 85.00 ) {
-    Serial.print("Error getting temperature [");
     Serial.print(tempC);
-    Serial.print("C]");
-  } else {
-    Serial.print(tempC);
-    Serial.print("C");    
-  }
+    Serial.print("C");      
 }
 
 // retourne 1 si le param est une temperature
-int temperatureValide(float tempe)
+int temperatureValide(float tempf)
 {
-  if (tempe == -127.00 || tempe == 0.00 || tempe == 85.00 ) {
-  //   Serial.print("Error getting temperature [");
-  //   Serial.print(tempC);
-  //   Serial.print("C]");
-	return 0; 
+  float tempInvalide[]={-127.00, 0.00 , 85.00}; 
+  float ttolerence=0.01;
+
+  int i=0;
+  for (i=0; i<3;i++) 
+  {
+    if(abs(tempf-tempInvalide[i]) <= ttolerence ) {return 0; }
   }
   return 1;
 }
@@ -102,25 +104,21 @@ void verifieTempEau()
     }
   } else { 
      Serial.print("Touche pas (delta[");
-     Serial.print(delta);
-     Serial.print("])");
      flashLaLumiere(1);
   }
   Serial.print(delta);
   Serial.print("] Cible [");
   Serial.print(tempCible);
-  Serial.print("C])");
+  Serial.print("C]) Erreur Eau[");
+  Serial.print(lectureRateEau);
+  Serial.print("] Erreur Ext[");
+  Serial.print(lectureRateExt);
+  Serial.print("]");
 }
-
-int lectureRateEau=0;
-int lectureRateExt=0;
 
 void calculeCible()
 {
     tempCible=m*tempExt+b; 
-//  Serial.print("Cible: ");
-//	Serial.print(cible);
-//	Serial.print("C\n\r");
 }
 
 void loop(void)
@@ -133,11 +131,13 @@ void loop(void)
   temp=sensors.getTempC(thermometreEau);
   if ( temperatureValide(temp) ) {
 	tempEau=temp;
+	lectureRateEau=0;
   } else { lectureRateEau++; }
 
   temp=sensors.getTempC(thermometreExterieur);
   if ( temperatureValide(temp) ) {
 	tempExt=temp;
+	lectureRateExt=0;
   }else { lectureRateExt++; }
   
   Serial.print("Temperature eau: ");
