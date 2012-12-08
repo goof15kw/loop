@@ -51,7 +51,9 @@ int lectureRateEau=0;
 int lectureRateExt=0;
 int lectureRateEauMax=0;
 int lectureRateExtMax=0;
-
+int errExt=0;
+int errEau=0;
+int nbLecture=0;
 
 void setup(void)
 {
@@ -112,15 +114,28 @@ void verifieTempEau()
   Serial.print(delta);
   Serial.print("] Cible [");
   Serial.print(tempCible);
-  Serial.print("C]) Erreur Eau/Max[");
+  Serial.print("C])");
+  Serial.print(" nbLecture:");
+  Serial.print(nbLecture);
+  Serial.print("\nErreur courant/Max/Ever\nEau [");
   Serial.print(lectureRateEau);
   Serial.print("/"); 
   Serial.print(lectureRateEauMax);
-  Serial.print("] Erreur Ext/Max[");
+  Serial.print("/");
+  Serial.print(errEau);
+  Serial.print("] ");
+  Serial.print(((1.0*errEau)/(1.0*nbLecture))*100.0);
+  Serial.print("% \nExt [");
   Serial.print(lectureRateExt);
   Serial.print("/"); 
   Serial.print(lectureRateExtMax);
-  Serial.print("]");
+  Serial.print("/");
+  Serial.print(errExt);
+  Serial.print("] ");
+  Serial.print(((1.0*errExt)/(1.0*nbLecture))*100.0);
+  Serial.print("% ");
+  
+
 }
 
 void calculeCible()
@@ -134,20 +149,20 @@ void loop(void)
   delay(2000);
   Serial.print("Getting temperatures...\n\r");
   sensors.requestTemperatures();
-  
+  nbLecture++;
   temp=sensors.getTempC(thermometreEau);
   if ( temperatureValide(temp) ) {
-	tempEau=temp;
+	tempEau=temp;	
 	if (lectureRateEau > lectureRateEauMax) {lectureRateEauMax=lectureRateEau; }
 	lectureRateEau=0;
-  } else { lectureRateEau++; }
+  } else { lectureRateEau++; errEau++;}
 
   temp=sensors.getTempC(thermometreExterieur);
   if ( temperatureValide(temp) ) {
 	tempExt=temp;
 	if (lectureRateExt > lectureRateExtMax) {lectureRateExtMax=lectureRateExt; }
 	lectureRateExt=0;
-  }else { lectureRateExt++; }
+  }else { lectureRateExt++; errExt++;}
   
   Serial.print("Temperature eau: ");
   printTemperature(tempEau);
